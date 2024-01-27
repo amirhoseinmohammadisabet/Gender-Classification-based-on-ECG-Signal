@@ -5,6 +5,8 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+
 
 # Function to compute Fourier transform features
 def compute_fourier_features(data):
@@ -31,6 +33,7 @@ X_train, X_test, y_train, y_test = train_test_split(fourier_features, labels, te
 
 # Initialize SVM classifier
 svm_classifier = SVC(kernel='linear', C=1)
+
 
 # Perform cross-validation
 cv_scores = cross_val_score(svm_classifier, X_train, y_train, cv=5, scoring='accuracy')
@@ -72,3 +75,4 @@ def data_scatter(X_test, y_test, y_pred):
 eval(cv_scores, y_test, y_pred)
 conf_matrix(y_test, y_pred)
 data_scatter(X_test, y_test, y_pred)
+

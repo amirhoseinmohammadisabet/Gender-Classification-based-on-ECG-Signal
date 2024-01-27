@@ -2,74 +2,84 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-# Read the CSV file into a DataFrame
-df = pd.read_csv('ecg.csv', header=None)
+def ecg_classification_pipeline(file_path='ecg.csv', num_fourier_components=30, num_pca_components=20):
+    # Function to compute Fourier transform features
+    def compute_fourier_features(data):
+        fft_result = np.fft.fft(data, axis=1)
+        magnitude = np.abs(fft_result)
+        features = magnitude[:, :num_fourier_components]
+        return features
 
-# Assuming the last column is the label (1 for abnormal, 0 for normal)
-labels = df.iloc[:, -1]
-ecg_data = df.iloc[:, :-1]
+    # Function to perform ECG classification
+    def ecg_classification(X_train, X_test, y_train):
+        # Initialize SVM classifier
+        svm_classifier = SVC(kernel='linear', C=1)
 
-# Function to compute Fourier transform features
-def compute_fourier_features(data):
-    # Apply Fourier transform to each row of the data
-    fft_result = np.fft.fft(data, axis=1)
-    
-    # Take the magnitude of the Fourier transform
-    magnitude = np.abs(fft_result)
-    
-    # Use the first half of the magnitudes as features
-    features = magnitude[:, :len(data.columns)//2]
-    
-    return features
+        # Perform cross-validation
+        cv_scores = cross_val_score(svm_classifier, X_train, y_train, cv=10, scoring='accuracy')
 
-# Compute Fourier transform features
-fourier_features = compute_fourier_features(ecg_data)
+        # Train the model on the training set
+        svm_classifier.fit(X_train, y_train)
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(fourier_features, labels, test_size=0.2, random_state=42)
+        # Make predictions on the test set
+        y_pred = svm_classifier.predict(X_test)
 
-# Initialize SVM classifier
-svm_classifier = SVC(kernel='linear', C=1)
+        return cv_scores, y_pred
 
-# Perform cross-validation
-cv_scores = cross_val_score(svm_classifier, X_train, y_train, cv=5, scoring='accuracy')
+    # Function to evaluate and visualize results
+    def evaluate_and_visualize(cv_scores, y_test, y_pred, X_test_pca):
+        # Evaluate accuracy
+        accuracy = accuracy_score(y_test, y_pred)
 
-# Train the model on the training set
-svm_classifier.fit(X_train, y_train)
+        # Display results
+        print("Cross-Validation Scores:", cv_scores)
+        print("Average Cross-Validation Accuracy:", np.mean(cv_scores))
+        print("Test Set Accuracy:", accuracy)
 
-# Make predictions on the test set
-y_pred = svm_classifier.predict(X_test)
+        # Display confusion matrix
+        conf_matrix = confusion_matrix(y_test, y_pred)
+        print("Confusion Matrix:")
+        print(conf_matrix)
 
-# Evaluate accuracy
-accuracy = accuracy_score(y_test, y_pred)
+        # Visualize scatter plot for correct and incorrect predictions
+        correct_predictions = X_test_pca[y_test == y_pred]
+        incorrect_predictions = X_test_pca[y_test != y_pred]
 
-# Display results
-print("Cross-Validation Scores:", cv_scores)
-print("Average Cross-Validation Accuracy:", np.mean(cv_scores))
-print("Test Set Accuracy:", accuracy)
+        plt.figure(figsize=(12, 8))
+        plt.scatter(correct_predictions[:, 0], correct_predictions[:, 1], c='green', label='Correct Prediction')
+        plt.scatter(incorrect_predictions[:, 0], incorrect_predictions[:, 1], c='red', label='Incorrect Prediction')
+        plt.title('Scatter Plot of Correct and Incorrect Predictions')
+        plt.xlabel('Principal Component 1')
+        plt.ylabel('Principal Component 2')
+        plt.legend()
+        plt.show()
 
-# Optional: Plot an example ECG signal and its Fourier transform
-example_row = ecg_data.iloc[0]
-example_label = labels.iloc[0]
-example_fft = np.fft.fft(example_row)
-example_magnitude = np.abs(example_fft)[:len(example_row)//2]
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(file_path, header=None)
 
-plt.figure(figsize=(12, 8))
+    # Assuming the last column is the label (1 for abnormal, 0 for normal)
+    labels = df.iloc[:, -1]
+    ecg_data = df.iloc[:, :-1]
 
-plt.subplot(2, 1, 1)
-plt.plot(example_row)
-plt.title(f'Example ECG Signal (Label: {example_label})')
-plt.xlabel('Sample')
-plt.ylabel('Amplitude')
+    # Compute Fourier transform features
+    fourier_features = compute_fourier_features(ecg_data)
 
-plt.subplot(2, 1, 2)
-plt.plot(example_magnitude)
-plt.title('Fourier Transform')
-plt.xlabel('Frequency')
-plt.ylabel('Magnitude')
+    # Apply PCA to Fourier features
+    pca = PCA(n_components=num_pca_components)
+    pca_features = pca.fit_transform(fourier_features)
 
-plt.tight_layout()
-plt.show()
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(pca_features, labels, test_size=0.2, random_state=100)
+
+    # Perform ECG classification
+    cv_scores, y_pred = ecg_classification(X_train, X_test, y_train)
+
+    # Evaluate and visualize results
+    evaluate_and_visualize(cv_scores, y_test, y_pred, X_test)
+
+# Run the ECG classification pipeline
+ecg_classification_pipeline()
