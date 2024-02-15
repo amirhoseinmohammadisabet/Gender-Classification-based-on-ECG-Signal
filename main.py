@@ -1,7 +1,6 @@
 import ecg
 # Main Streamlit app
 def main():
-    ecg()    
-
+    print("starting")
 if __name__ == "__main__":
     main()

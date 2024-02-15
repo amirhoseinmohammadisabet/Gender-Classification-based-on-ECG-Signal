@@ -25,23 +25,11 @@ def data_reader():
     return labels, ecg_data
 
 labels, ecg_data = data_reader()
-# Compute Fourier transform features
 fourier_features = compute_fourier_features(ecg_data)
-
-# Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(fourier_features, labels, test_size=0.2, random_state=42)
-
-# Initialize SVM classifier
 svm_classifier = SVC(kernel='linear', C=1)
-
-
-# Perform cross-validation
 cv_scores = cross_val_score(svm_classifier, X_train, y_train, cv=5, scoring='accuracy')
-
-# Train the model on the training set
 svm_classifier.fit(X_train, y_train)
-
-# Make predictions on the test set
 y_pred = svm_classifier.predict(X_test)
 
 def eval(cv_scores, y_test, y_pred):

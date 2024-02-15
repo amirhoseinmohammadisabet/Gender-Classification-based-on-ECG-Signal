@@ -18,6 +18,8 @@ def ecgin(pernum, lengsig):
 
 def plot_ecg(ecgsig, sample_rate=1):
     num_ecgs, num_samples = ecgsig.shape
+    print(num_ecgs)
+    print(num_samples)
     time = np.arange(0, num_samples/sample_rate, 1/sample_rate)
     
     plt.figure(figsize=(10, 6))
@@ -38,4 +40,4 @@ lengsig = 21000
 # Call the function
 ecgsig = ecgin(pernum, lengsig)
 print(ecgsig)
-plot_ecg(ecgsig, sample_rate=1)
+plot_ecg(ecgsig, sample_rate=2)
