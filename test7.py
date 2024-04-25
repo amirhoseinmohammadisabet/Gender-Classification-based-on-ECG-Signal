@@ -1,17 +1,61 @@
 import wfdb
 import os
-
-data_dir = 'mydata'
-record_names = [f.split('.')[0] for f in os.listdir(data_dir) if f.endswith('.dat')]
-
-record = record_names[1]
-signals, fields = wfdb.rdsamp(os.path.join(data_dir, record))
-
-# print("Signals:", signals)
-# print("Fields:", fields)
-
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
+def file_to_csv(az,ta,long,to):
+    data_dir = 'mydata'
+    record_names = [f.split('.')[0] for f in os.listdir(data_dir) if f.endswith('.dat')]
+
+    dataframes = []
+    column_names = []
+    for i in range(az, ta):
+        record = record_names[i]
+        signals, fields = wfdb.rdsamp(os.path.join(data_dir, record))
+        df = pd.DataFrame(signals, columns=fields['sig_name'])
+        dataframes.append((df.iloc[:, 0])[0:long])
+        column_names.append(f"ECG{i+1}")
+
+    combined_df = pd.concat(dataframes, axis=1) 
+    combined_df.columns = column_names
+    combined_df.to_csv(f'{to}.csv', index=False)
+
+
+# file_to_csv(0,10,20,"ecg_0-10")
+
+
+def csv_merger():
+    files = ["ecg-0-300.csv", "ecg-300-500.csv", "ecg-500-700.csv", "ecg-700-900.csv", "ecg-900-1120.csv"]
+    dfs = []
+    for file in files:
+        dfs.append(pd.read_csv(file))
+    merged_df = pd.concat(dfs, axis=1)
+    merged_df.to_csv("ECG_signals_col.csv", )
+    merged_df.T.to_csv("ECG_signals.csv", )
+    print("Merged file saved successfully.")
+
+# csv_merger()
+
+
+def database_wrapper():
+    df2 = pd.read_csv("ECG_signals.csv")
+    df1 = pd.read_csv("subject-info.csv")
+    merged_df = pd.merge(df2,df1,  left_index=True, right_index=True)
+    merged_df.to_csv("ECG_signals_data.csv", )
+    
+    print(merged_df.head())
+
+# database_wrapper()
+
+
+
+
+
+
+
+
+
 
 def plot_record(record_name, data_dir):
     signals, fields = wfdb.rdsamp(os.path.join(data_dir, record_name))
@@ -33,27 +77,3 @@ def plot_record(record_name, data_dir):
 
 # Example usage:
 # plot_record(record_names[0], data_dir)
-
-
-import os
-import pandas as pd
-import wfdb
-
-data_dir = 'mydata'
-record_names = [f.split('.')[0] for f in os.listdir(data_dir) if f.endswith('.dat')]
-
-dataframes = []
-column_names = []
-for i in range(0, 7):
-    record = record_names[i]
-    signals, fields = wfdb.rdsamp(os.path.join(data_dir, record))
-    df = pd.DataFrame(signals, columns=fields['sig_name'])
-    dataframes.append((df.iloc[:, 0])[0:2000])
-    column_names.append(f"ECG{i+1}")
-
-combined_df = pd.concat(dataframes, axis=1) 
-combined_df.columns = column_names
-
-combined_df.to_csv('combined_ecg_data.csv', index=False)
-
-
