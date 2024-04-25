@@ -50,30 +50,19 @@ def database_wrapper():
 
 
 
+def plot_record(signal_num, signal_len):
+    fs = 1000
+    df = pd.read_csv('ECG_signals_col.csv')
+    ecg_signal = df.iloc[:,signal_num][0:signal_len]
+    time = np.arange(len(ecg_signal))/fs
 
-
-
-
-
-
-
-def plot_record(record_name, data_dir):
-    signals, fields = wfdb.rdsamp(os.path.join(data_dir, record_name))
-    fs = fields['fs']
-    time = np.arange(len(signals)) / fs
-
-    # Plot each signal
-    # for i in range(len(signals[0])):
-    #     plt.plot(time, signals[:, i], label='Signal {}'.format(i + 1))
-
-    plt.plot(time, signals[:, 1], label='Signal {}')
-
+    plt.plot(time, ecg_signal, label='Original Signal')
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
-    plt.title('Signals of Record: {}'.format(record_name))
+    plt.title('Signals of Record: {}'.format(signal_num))
     plt.legend()
     plt.grid(True)
     plt.show()
 
 # Example usage:
-# plot_record(record_names[0], data_dir)
+plot_record(100,500)

@@ -4,6 +4,9 @@ import pywt
 import os
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
+import pandas as pd
+
+
 
 
 def ecgfilter(signal):
@@ -29,18 +32,6 @@ def denoisecg(signal, threshold):
     return denoised_signal
 
 
-def ecgin(pernum, lengsig):
-    ecgsig = np.zeros((pernum, lengsig))
-    data_folder = "Data/MIT_BIH_NS"  # Specify the folder name
-    for x in range(1, pernum + 1):
-        filename = f"{x}.mat"
-        filepath = os.path.join(data_folder, filename)
-        data = sio.loadmat(filepath)
-        ecgsig = data['val']
-        # You can add filtering or denoising steps here if needed
-    return ecgsig
-
-
 def plot_ecg(ecgsig, filtered_ecg, sample_rate=1):
     num_ecgs, num_samples = ecgsig.shape
     time = np.arange(0, num_samples / sample_rate, 1 / sample_rate)
@@ -58,15 +49,30 @@ def plot_ecg(ecgsig, filtered_ecg, sample_rate=1):
     plt.show()
 
 
-# Assuming you have 3 ECG signals to process, each with a length of 10000 points
-pernum = 3
-lengsig = 10000
 
-# Call ecgin function to process the ECG signals
-ecg_signals = ecgin(pernum, lengsig)
 
-# Apply filtering to the ECG signals
-filtered_ecg_signals = np.array([ecgfilter(signal) for signal in ecg_signals])
+fs = 1000
+ecg_signals = pd.read_csv('ECG_signals_col.csv')
+ecg_signal = ecg_signals.iloc[:,5][0:500]
+time = np.arange(len(ecg_signal))/fs
 
-# Plot original and filtered signals
-plot_ecg(ecg_signals, filtered_ecg_signals, sample_rate=2)
+
+ecg_filtered_1 = ecgfilter(ecg_signal)
+ecg_filtered_2 = denoisecg(ecg_signal,0.1)
+
+import matplotlib.pyplot as plt
+
+# Define the time array
+time = np.arange(len(ecg_signal)) / fs
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(time, ecg_signal, label='Original ECG Signal')
+plt.plot(time, ecg_filtered_1, label='Filtered ECG Signal')
+plt.plot(time, ecg_filtered_2, label='Denoised ECG Signal')
+plt.title('ECG Signals Comparison')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid(True)
+plt.show()
