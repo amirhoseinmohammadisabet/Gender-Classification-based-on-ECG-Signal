@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-def ecg_classification_pipeline(file_path='ecg.csv', num_fourier_components=30, num_pca_components=20):
+def ecg_classification_pipeline(file_path='ECG_signals_age.csv', num_fourier_components=30, num_pca_components=20):
     # Function to compute Fourier transform features
     def compute_fourier_features(data):
         fft_result = np.fft.fft(data, axis=1)
@@ -67,6 +67,9 @@ def ecg_classification_pipeline(file_path='ecg.csv', num_fourier_components=30, 
 
     # Compute Fourier transform features
     fourier_features = compute_fourier_features(ecg_data)
+    ff = pd.DataFrame(fourier_features)
+    print(ff.head())
+    ff.to_csv("fourier_features.csv", )
 
     # Apply PCA to Fourier features
     pca = PCA(n_components=num_pca_components)
