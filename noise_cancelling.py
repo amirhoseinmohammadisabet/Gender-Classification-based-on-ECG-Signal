@@ -7,8 +7,6 @@ from scipy.signal import butter, filtfilt
 import pandas as pd
 
 
-
-
 def ecgfilter(signal):
     # Butterworth filter parameters
     cutoff_freq = 0.5  # Adjust cutoff frequency as needed
@@ -48,10 +46,9 @@ def plot_ecg(ecgsig, filtered_ecg, sample_rate=1):
     plt.grid(True)
     plt.show()
 
-
 fs = 1000
 ecg_signals = pd.read_csv('ECG_signals_col.csv')
-ecg_signal = ecg_signals.iloc[:,5][0:500]
+ecg_signal = ecg_signals.iloc[:,30][500:1000]
 time = np.arange(len(ecg_signal))/fs
 
 
