@@ -15,7 +15,7 @@ from sklearn.model_selection import GridSearchCV, KFold, cross_val_score
 from sklearn.feature_selection import SelectKBest, f_classif
 
 # Load ECG data from CSV file
-ecg_data = pd.read_csv('ecg_0-10.csv')
+ecg_data = pd.read_csv('ECG_signal_main.csv')
 ecg_data = ecg_data.dropna()
 
 # Extract features (FFT)
