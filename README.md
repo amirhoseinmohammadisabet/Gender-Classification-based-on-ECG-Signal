@@ -32,6 +32,5 @@ This project explores the use of **electrocardiogram (ECG) signals** to differen
 
 ## 🚀 How to Run  
 1. **Clone the repo**:  
-   ```bash  
-   git clone https://github.com/amirhoseinmohammadisabet/Health.git
-   
+Install requirements   
+python main.py   
